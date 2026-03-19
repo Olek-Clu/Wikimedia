@@ -1,0 +1,21 @@
+﻿@model Models.Media
+@{ ViewBag.PageTitle = "Détails"; }
+
+<div class="detailsPanel">
+@Html.Partial("_Details",Model)
+</div>
+
+@section Scripts {
+
+    <script>
+        function RefreshDetails() {
+            let data = $().load("/Medias/GetCurrentMedia");
+            console.log(data);
+            if (data.length > 0) {
+
+                $(".detailsPanel").html(data);
+            }
+        }
+        setInterval(RefreshDetails, 2000);
+    </script>
+    }
