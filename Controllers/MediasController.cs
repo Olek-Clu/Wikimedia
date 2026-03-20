@@ -68,6 +68,7 @@ public class MediasController : Controller
         try
         {
             IEnumerable<Media> result = null;
+            User currentUser = (User)Session["ConnectedUser"];
             // Must evaluate HasChanged before forceRefresh, this will fix an usefull refresh
             if (DB.Medias.HasChanged || forceRefresh)
             {
@@ -101,6 +102,8 @@ public class MediasController : Controller
                     else
                         result = result.OrderByDescending(c => c.PublishDate);
                 }
+                //Shared sorting can still see if uploaded by yourself 
+                result = DB.Medias.ToList().Where(c => c.Shared || c.OwnerID == currentUser.Id);
                 return PartialView(result);
             }
             return null;
@@ -174,6 +177,8 @@ public class MediasController : Controller
     {
         Session["CurrentMediaId"] = id;
         Media Media = DB.Medias.Get(id);
+        ViewBag.User = DB.Users.Get(Media.OwnerID);
+        
         if (Media != null)
         {
             Session["CurrentMediaTitle"] = Media.Title;
@@ -183,9 +188,15 @@ public class MediasController : Controller
     }
     [UserAccess(Models.Access.Write)]
     public ActionResult Create()
-    {
+    {       
         if (Models.User.ConnectedUser.Access == Access.Write)
+        {
+            User user = (User)Session["ConnectedUser"];
+            ViewBag.CreatorId = user.Id;
             return View(new Media());
+        }
+            
+
         return RedirectToAction("List");
     }
 
@@ -211,7 +222,9 @@ public class MediasController : Controller
         int id = Session["CurrentMediaId"] != null ? (int)Session["CurrentMediaId"] : 0;
         if (id != 0)
         {
+           
             Media Media = DB.Medias.Get(id);
+            ViewBag.CreatorId = Media.OwnerID;
             if (Media != null)
                 return View(Media);
         }
@@ -222,7 +235,7 @@ public class MediasController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken()]
     public ActionResult Edit(Media Media)
-    {
+    {   
         // Has explained earlier, id of Media is stored server side an not provided in form data
         // passed in the method in order to prever from malicious requests
 
@@ -230,9 +243,11 @@ public class MediasController : Controller
 
         // Make sure that the Media of id really exist
         Media storedMedia = DB.Medias.Get(id);
-        if (storedMedia != null)
+        User connectedUser = (User)Session["ConnectedUser"];
+        if (storedMedia != null && storedMedia.OwnerID == connectedUser.Id )
         {
             Media.Id = id; // patch the Id
+            Media.OwnerID= storedMedia.OwnerID;
             Media.PublishDate = storedMedia.PublishDate; // keep orignal PublishDate
             DB.Medias.Update(Media);
         }
@@ -243,7 +258,9 @@ public class MediasController : Controller
     {
 
         int id = Session["CurrentMediaId"] != null ? (int)Session["CurrentMediaId"] : 0;
-        if (id != 0)
+        Media CurrentMedia = DB.Medias.Get(id);
+        User connectedUser = (User)Session["ConnectedUser"];
+        if (id != 0 && CurrentMedia.OwnerID == connectedUser.Id)
         {
             DB.Medias.Delete(id);
         }

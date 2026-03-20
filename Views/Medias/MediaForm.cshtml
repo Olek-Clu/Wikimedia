@@ -1,6 +1,10 @@
 ﻿@model Models.Media
+@{
+   
+ }
 
 <form class="form" action="/Medias/@ViewBag.Action" method="POST">
+    <input hidden value="@Model.OwnerID" />
     @Html.AntiForgeryToken() <!-- Injection de jeton anti contrefaçon de formulaire -->
     <label for="Title">Titre</label>
     <input id="Title"
@@ -20,8 +24,8 @@
            value="@Model.Category"
            required
            RequireMessage="Veuillez entrer une catégorie"
-           InvalidMessage="La catégorie comporte un caractère illégal" 
-           onfocusout="this.value = this.value.trim()"/>
+           InvalidMessage="La catégorie comporte un caractère illégal"
+           onfocusout="this.value = this.value.trim()" />
     <datalist id="Categories">
         @foreach (var category in DAL.DB.Medias.MediasCategories())
         {
@@ -55,4 +59,15 @@
            CustomErrorMessage="Cet id est déjà utilisé" />
     <img id="previewThumbnail" class="mediaThumbnailBig" src="https://img.youtube.com/vi/@Model.YoutubeId/mqdefault.jpg" loading="lazy">
     <input id="submit" type="submit" value="Enregistrer" class="btn btn-primary" style="display:none">
+    <legend>Partage</legend>
+    <div style="display:grid; grid-template-columns:15px 10px auto; text-align:left;">
+
+        <input id="Shared" name="Shared"
+               type="checkbox"
+               value=@(Model.Shared ? true : false) />
+        <label for="Shared" style="margin-left:4px;">Activé</label>
+    </div>
+
+
+
 </form>

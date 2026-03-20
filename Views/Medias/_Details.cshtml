@@ -2,13 +2,21 @@
 
 @{
     Layout = null;
+    User user = ViewBag.User;
+    User connected = (User)Session["ConnectedUser"];
+
+
 }
 
 <dl>
     <dd>
         @Model.Title
+        @if (connected != null && Model.OwnerID == connected.Id)
+        {
+           <span >[Partage]</span>
+        }
     </dd>
-    
+
     <dd>
         @Helper.YoutubePlayer(Model.YoutubeId)
     </dd>
@@ -30,13 +38,15 @@
     <dd>
         @Helper.When(Model.PublishDate)
     </dd>
-    
+
     <dt>
-        User
+        Ajouté par 
     </dt>
 
-    <dd>
-        @Model.OwnerID
-    </dd>
+    <div class="userItem">
+        <img src="@user.Avatar" class="UserMediumAvatar" />
+    
+       <div class="ellipsis"> @user.Name</div>
+    </div>
 
 </dl>
